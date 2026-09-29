@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hospital Operations Tracker — Working Model</title>
+<style>
+:root{--bg:#f6faf9;--card:#fff;--ink:#0f2a33;--mut:#4d6870;--acc:#0b8a7d;--soft:#dff2ee;--bd:#d5e5e2;--g:#22a06b;--r:#dc4b4b;--y:#e0a020;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1a1f;--card:#12272d;--ink:#e8f3f1;--mut:#9bb6b9;--acc:#3ccdb9;--soft:#173840;--bd:#24444b}}
+:root[data-theme="dark"]{--bg:#0b1a1f;--card:#12272d;--ink:#e8f3f1;--mut:#9bb6b9;--acc:#3ccdb9;--soft:#173840;--bd:#24444b}
+*{box-sizing:border-box}html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:15px/1.5 "Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--bg);border-bottom:1px solid var(--bd);display:flex;gap:6px;align-items:center;padding:10px 20px;overflow-x:auto;white-space:nowrap}
+.brand{color:var(--acc);font-weight:800;letter-spacing:.08em;font-size:13px;margin-right:auto;padding-right:14px}
+.t{border:0;background:none;color:var(--mut);font:inherit;padding:7px 14px;border-radius:99px;cursor:pointer}
+.t.on{background:var(--soft);color:var(--acc);font-weight:600}
+main{max-width:1040px;margin:0 auto;padding:28px 20px 60px}
+h2{margin:0 0 4px;font-size:26px}h3{margin:0 0 10px;font-size:16px}
+.sub{color:var(--mut);margin:0 0 20px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px}
+.stat b{display:block;font-size:32px;line-height:1.1;color:var(--acc)}.stat span{color:var(--mut);font-size:13px}
+input,select{font:inherit;padding:9px 12px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--ink);width:100%;margin-bottom:10px}
+.b{font:inherit;font-weight:600;border:0;border-radius:10px;padding:8px 14px;cursor:pointer;background:var(--acc);color:#fff}
+.b.s{background:var(--soft);color:var(--acc)}.b.d{background:var(--r)}
+.b:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd)}
+.row:last-child{border:0}.row small{color:var(--mut)}
+.tok{font-weight:800;color:var(--acc);letter-spacing:.04em}
+.pill{font-size:12px;font-weight:700;padding:2px 10px;border-radius:99px;background:var(--soft);color:var(--acc)}
+.big{font-size:44px;font-weight:800;color:var(--acc);letter-spacing:.04em}
+.beds{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.bed{border:0;border-radius:10px;padding:10px 4px;color:#fff;font:inherit;font-size:12px;font-weight:700;cursor:pointer;background:var(--g)}
+.bed.o{background:var(--r);cursor:default}.bed.r{background:var(--y)}.bed.pick{outline:3px solid var(--acc);outline-offset:2px}
+.bar{height:10px;border-radius:9px;background:var(--bd);overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;background:var(--acc)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--mut);font-size:13px;margin:0 0 14px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+.empty{color:var(--mut);font-size:14px;padding:6px 0}
+.msg{background:var(--soft);border-radius:12px;padding:14px;margin-bottom:14px}
+.log{font-size:13px;color:var(--mut)}
+.eyebrow{color:var(--acc);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+.hero{padding:24px 0 30px}.hero h1{font-size:clamp(36px,7vw,64px);line-height:1.03;margin:10px 0 14px;letter-spacing:-.02em}.hero h1 span{color:var(--acc)}
+.lead{font-size:18px;color:var(--mut);max-width:620px;margin:0 0 20px}
+.chain{list-style:none;margin:0 0 26px;padding:0;display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));counter-reset:s}
+.chain li{counter-increment:s;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px}
+.chain li::before{content:counter(s);display:block;color:var(--acc);font-weight:800;font-size:20px}
+.chain b{display:block;font-size:12px;letter-spacing:.1em}.chain span{color:var(--mut);font-size:13px}
+.chain li.go{background:var(--acc);border-color:var(--acc)}.chain li.go *,.chain li.go::before{color:#fff}
+.chain li.go{color:#fff}
+h3.sec{margin:26px 0 12px;font-size:20px}
+footer{border-top:1px solid var(--bd);text-align:center;color:var(--mut);padding:24px;font-size:13px}
+</style>
+</head>
+<body>
+<header><span class="brand">HOSPITAL OPS TRACKER</span><span id="tabs"></span></header>
+<main id="v"></main>
+<footer>Hospital Operations Tracker · OPD Queuing and Bed Availability · Demo runs in your browser with sample data</footer>
+<script>
+var D=[['General Medicine','G'],['Orthopedics','O'],['Pediatrics','P'],['Cardiology','C']];
+var WD=[['General Ward','GW',8],['Ortho Ward','OW',6],['Pediatric Ward','PW',6],['ICU','ICU',4]];
+var TABS=[['home','Home'],['prob','Problem & Impact'],['flow','How It Works'],['dash','Dashboard'],['reg','Register'],['queue','OPD Queue'],['beds','Beds & Admission'],['track','Patient Track']];
+var S,tab='home',sel=null,last=null,tq='',DEMO_PER=8;
+function fresh(){var b=[];WD.forEach(function(w){for(var i=1;i<=w[2];i++)b.push({id:w[1]+'-'+i,ward:w[0],st:'a',pid:null})});return{n:{G:0,O:0,P:0,C:0},p:[],b:b,log:[]}}
+try{S=JSON.parse(localStorage.getItem('hot'))}catch(e){S=null}
+if(!S||!S.b)S=fresh();
+function save(){try{localStorage.setItem('hot',JSON.stringify(S))}catch(e){}}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function lg(m){S.log.unshift(new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})+' · '+m);S.log=S.log.slice(0,8)}
+function P(id){return S.p.find(function(p){return p.id==id})}
+function dn(c){return D.find(function(d){return d[1]==c})[0]}
+function waiting(c){return S.p.filter(function(p){return p.dc==c&&p.s=='w'})}
+function reg(name,c){S.n[c]++;var p={id:Date.now()+Math.random(),tk:c+'-'+String(S.n[c]).padStart(3,'0'),name:name,dc:c,s:'w',bed:null};S.p.push(p);lg(p.tk+' registered ('+dn(c)+')');last=p;save()}
+function call(c){if(S.p.some(function(p){return p.dc==c&&p.s=='c'}))return;var n=waiting(c)[0];if(n){n.s='c';lg(n.tk+' called for consultation')}save()}
+function outcome(id,adm){var p=P(id);p.s=adm?'a':'x';lg(p.tk+(adm?' needs admission':' treated, consultation done'));save()}
+function alloc(id,bid){var p=P(id),b=S.b.find(function(x){return x.id==bid});if(!p||b.st!='a')return;b.st='o';b.pid=id;p.s='i';p.bed=bid;sel=null;lg(p.tk+' admitted to '+bid);save()}
+function disch(id){var p=P(id),b=S.b.find(function(x){return x.id==p.bed});b.st='a';b.pid=null;p.s='x';lg(p.tk+' discharged, '+b.id+' available');save()}
+function cnt(s){return S.b.filter(function(b){return b.st==s}).length}
+function demo(){['Asha K','Ravi S','Meena P','John D','Priya R','Imran A'].forEach(function(n,i){reg(n,D[i%4][1])});call('G');call('P');save()}
+
+function ch(a,go){return '<ol class="chain">'+a.map(function(c,i){return '<li'+(go&&i==a.length-1?' class="go"':'')+'><b>'+c[0]+'</b><span>'+(c[1]||'')+'</span></li>'}).join('')+'</ol>'}
+function cd(a){return '<div class="grid">'+a.map(function(c){return '<div class="card"><h3>'+c[0]+'</h3><span style="color:var(--mut)">'+c[1]+'</span></div>'}).join('')+'</div>'}
+var V={
+home:function(){return '<div class="hero"><div class="eyebrow">OPD Queuing and Bed Availability</div><h1>Hospital Operations <span>Tracker</span></h1><p class="lead">A smart digital system to improve patient flow and hospital resource management. One platform for OPD queues and bed availability.</p><button class="b" data-a="demogo">Try the live demo</button> <button class="b s" data-a="tab" data-i="prob">Read the problem</button></div>'+
+'<div class="grid"><div class="card"><h3>OPD queue management</h3><span style="color:var(--mut)">Digital registration, automatic tokens, real-time position and wait estimates, department-wise queues.</span></div><div class="card"><h3>Bed availability</h3><span style="color:var(--mut)">Live available, occupied and reserved status by ward, with admission and discharge updates.</span></div><div class="card"><h3>Centralized dashboard</h3><span style="color:var(--mut)">Queues, beds and overall hospital status in a single view for staff.</span></div></div>'+
+'<h3 class="sec">How to try the demo</h3>'+ch([['REGISTER','Add a patient on the Register tab.'],['CALL','On OPD Queue, press Call next.'],['ADMIT','Mark “Needs admission”.'],['ALLOCATE','On Beds, select the patient, tap a free bed.'],['DISCHARGE','Discharge; the bed turns available.']])+
+'<p class="sub">Or press <a href="#" data-a="demogo" style="color:var(--acc)">Load sample data</a> to start with patients already in the system.</p>'},
+prob:function(){return '<h2>Problem & impact</h2><p class="sub">Why hospitals need a tracker.</p><h3 class="sec" style="margin-top:0">Existing problems</h3>'+cd([['Manual OPD queues','Long waiting times with manual queue management.'],['No patient visibility','Patients can\'t see queue position or wait estimate.'],['Delayed bed information','Bed availability isn\'t updated in real time.'],['Manual ward checks','Staff check wards by hand; no centralized view.']])+'<div class="msg" style="margin-top:14px"><b>Result:</b> delays in admission and bed allocation.</div><h3 class="sec">Operational impact</h3>'+cd([['Patient experience','Frustrated patients, heavier staff workload.'],['Resource use','Poor utilization of beds and rooms.'],['Care speed','Slower patient care and admissions.'],['Capacity pressure','Strained capacity during high patient volumes.']])},
+flow:function(){return '<h2>How it works</h2><p class="sub">The three flows the system supports. Every one of them is live in the demo.</p><h3 class="sec" style="margin-top:0">OPD flow</h3>'+ch([['REGISTRATION','Register patient.'],['SELECT','Department or doctor.'],['TOKEN','Generate digital token.'],['QUEUE','Join queue.'],['TRACK','Track position.'],['CONSULTATION','Doctor consultation.'],['DECISION','Treatment or admission.']])+'<h3 class="sec">Admission flow</h3>'+ch([['ADMISSION REQUIRED'],['CHECK BEDS','Real-time availability.'],['SELECT','Available ward/bed.'],['ALLOCATE BED'],['OCCUPIED','Status updated.']],1)+'<h3 class="sec">Discharge flow</h3>'+ch([['PATIENT DISCHARGE'],['BED UPDATED'],['BED AVAILABLE','Returns to the dashboard.']],1)},
+dash:function(){var w=S.p.filter(function(p){return p.s=='w'}).length,o=cnt('o'),t=S.b.length,pct=Math.round(o/t*100);
+return '<h2>Dashboard</h2><p class="sub">Queue, bed and hospital status in one view.</p><div class="grid"><div class="card stat"><b>'+w+'</b><span>Patients waiting</span></div><div class="card stat"><b>'+cnt('a')+'</b><span>Beds available</span></div><div class="card stat"><b>'+o+'</b><span>Beds occupied</span></div><div class="card stat"><b>'+cnt('r')+'</b><span>Beds reserved</span></div></div>'+
+'<div class="grid" style="margin-top:14px"><div class="card"><h3>OPD queues</h3>'+D.map(function(d){var q=waiting(d[1]).length,c=S.p.find(function(p){return p.dc==d[1]&&p.s=='c'});return '<div class="row"><span>'+d[0]+'<br><small>'+(c?'Now: '+c.tk:'No one in consultation')+'</small></span><span class="pill">'+q+' waiting</span></div>'}).join('')+'</div>'+
+'<div class="card"><h3>Hospital status · '+pct+'% occupied</h3><div class="bar"><i style="width:'+pct+'%"></i></div>'+WD.map(function(w){var bs=S.b.filter(function(b){return b.id.indexOf(w[1]+'-')==0});return '<div class="row"><span>'+w[0]+'</span><small>'+bs.filter(function(b){return b.st=='a'}).length+' / '+bs.length+' free</small></div>'}).join('')+'</div></div>'+
+'<div class="card" style="margin-top:14px"><h3>Recent activity</h3><div class="log">'+(S.log.length?S.log.map(esc).join('<br>'):'Nothing yet. Register a patient or load sample data.')+'</div><p style="margin:14px 0 0"><button class="b s" data-a="demo">Load sample data</button> <button class="b s" data-a="reset">Reset everything</button></p></div>'},
+reg:function(){return '<h2>Register patient</h2><p class="sub">Registration generates a digital token and joins the department queue.</p><div class="grid"><div class="card"><input id="nm" placeholder="Patient name"><select id="dp">'+D.map(function(d){return '<option value="'+d[1]+'">'+d[0]+'</option>'}).join('')+'</select><button class="b" data-a="reg">Register & generate token</button></div>'+
+(last?'<div class="card msg" style="margin:0"><small>Token issued to '+esc(last.name)+'</small><div class="big">'+last.tk+'</div>'+dn(last.dc)+'<br><small>Position in queue: '+(waiting(last.dc).indexOf(P(last.id))+1||'called')+'</small></div>':'')+'</div>'},
+queue:function(){return '<h2>OPD queue</h2><p class="sub">Doctor and department-wise queues. Call the next patient, then record the outcome.</p><div class="grid">'+D.map(function(d){var c=d[1],cur=S.p.find(function(p){return p.dc==c&&p.s=='c'}),w=waiting(c);
+return '<div class="card"><h3>'+d[0]+'</h3>'+(cur?'<div class="msg"><b class="tok">'+cur.tk+'</b> '+esc(cur.name)+'<br><small>In consultation</small><p style="margin:10px 0 0"><button class="b s" data-a="ok" data-i="'+cur.id+'">Treated</button> <button class="b" data-a="adm" data-i="'+cur.id+'">Needs admission</button></p></div>':'')+
+'<button class="b" data-a="call" data-c="'+c+'"'+(cur||!w.length?' disabled':'')+'>Call next</button>'+(w.length?w.map(function(p,i){return '<div class="row"><span><span class="tok">'+p.tk+'</span> '+esc(p.name)+'</span><small>#'+(i+1)+'</small></div>'}).join(''):'<div class="empty">Queue is empty.</div>')+'</div>'}).join('')+'</div>'},
+beds:function(){var pend=S.p.filter(function(p){return p.s=='a'}),adm=S.p.filter(function(p){return p.s=='i'});
+return '<h2>Beds & admission</h2><p class="sub">Select a patient needing admission, then tap an available bed to allocate it.</p><div class="grid"><div class="card"><h3>Awaiting bed</h3>'+(pend.length?pend.map(function(p){return '<div class="row"><span><span class="tok">'+p.tk+'</span> '+esc(p.name)+'</span><button class="b '+(sel==p.id?'':'s')+'" data-a="sel" data-i="'+p.id+'">'+(sel==p.id?'Selected':'Select')+'</button></div>'}).join(''):'<div class="empty">No admissions pending. Mark a consulted patient as “Needs admission”.</div>')+'</div>'+
+'<div class="card"><h3>Admitted</h3>'+(adm.length?adm.map(function(p){return '<div class="row"><span><span class="tok">'+p.tk+'</span> '+esc(p.name)+'<br><small>Bed '+p.bed+'</small></span><button class="b d" data-a="dis" data-i="'+p.id+'">Discharge</button></div>'}).join(''):'<div class="empty">No admitted patients.</div>')+'</div></div>'+
+'<div class="legend" style="margin-top:18px"><span><i style="background:var(--g)"></i>Available</span><span><i style="background:var(--r)"></i>Occupied</span><span><i style="background:var(--y)"></i>Reserved (tap to toggle)</span></div>'+
+WD.map(function(w){return '<div class="card" style="margin-bottom:12px"><h3>'+w[0]+'</h3><div class="beds">'+S.b.filter(function(b){return b.id.indexOf(w[1]+'-')==0}).map(function(b){return '<button class="bed '+b.st+(sel&&b.st=='a'?' pick':'')+'" data-a="bed" data-i="'+b.id+'">'+b.id.split('-')[1]+(b.st=='o'?'<br>'+P(b.pid).tk:'')+'</button>'}).join('')+'</div></div>'}).join('')},
+track:function(){var p=tq&&S.p.find(function(x){return x.tk==tq.toUpperCase().trim()}),m='';
+if(tq&&!p)m='<div class="msg">No patient found for that token.</div>';
+if(p){var st={w:'Waiting in queue',c:'Now in consultation',a:'Admission approved, waiting for a bed',i:'Admitted, bed '+p.bed,x:'Completed'}[p.s],pos=waiting(p.dc).indexOf(p)+1;
+m='<div class="card msg"><div class="big">'+p.tk+'</div>'+esc(p.name)+' · '+dn(p.dc)+'<p style="margin:10px 0 0"><b>'+st+'</b>'+(p.s=='w'?'<br>Position <b>'+pos+'</b> · estimated wait about <b>'+pos*DEMO_PER+' min</b>':'')+'</p></div>'}
+return '<h2>Patient track</h2><p class="sub">What a patient sees: queue position and estimated wait (about '+DEMO_PER+' minutes per patient).</p><div style="max-width:420px"><input id="tk" placeholder="Enter token, e.g. G-001" value="'+esc(tq)+'"><button class="b" data-a="track">Check status</button></div><div style="margin-top:16px;max-width:420px">'+m+'</div>'}
+};
+function draw(){document.getElementById('tabs').innerHTML=TABS.map(function(t){return '<button class="t'+(t[0]==tab?' on':'')+'" data-a="tab" data-i="'+t[0]+'">'+t[1]+'</button>'}).join('');document.getElementById('v').innerHTML=V[tab]()}
+document.addEventListener('click',function(e){var el=e.target.closest('[data-a]');if(!el)return;var a=el.dataset.a,i=el.dataset.i;
+if(a=='tab'){tab=i;window.scrollTo(0,0)}
+else if(a=='demogo'){demo();tab='dash';window.scrollTo(0,0)}
+else if(a=='reg'){var n=document.getElementById('nm').value.trim();if(!n){document.getElementById('nm').focus();return}reg(n,document.getElementById('dp').value)}
+else if(a=='call')call(el.dataset.c);
+else if(a=='ok')outcome(+i,0);else if(a=='adm')outcome(+i,1);
+else if(a=='sel'){sel=(sel==+i?null:+i)}
+else if(a=='bed'){var b=S.b.find(function(x){return x.id==i});if(b.st=='a'){if(sel)alloc(sel,i);else{b.st='r';save()}}else if(b.st=='r'){b.st='a';save()}}
+else if(a=='dis')disch(+i);
+else if(a=='track'){tq=document.getElementById('tk').value}
+else if(a=='demo'){demo()}
+else if(a=='reset'){S=fresh();last=null;sel=null;save()}
+draw()});
+draw();
+</script>
+</body>
+</html>
